@@ -12,17 +12,19 @@ import random
 
 screen_width = 100
 
-# Player Setup #
+### PLAYER SETUP ###
 class player:
     def __init__(self):
         self.name = ''
+        self.role = ''
         self.hp = 0
         self.mp = 0
         self.status_effects = []
-        self.location = 'noob village'
-myPLayer = player()
+        self.location = 'start'
+        self.game_over = False
+myPlayer = player()
 
-# Title Screen #
+### TITLE SCREEN ###
 def title_screen_selection():
     option = input(">").lower()
     if option == "play":
@@ -60,12 +62,9 @@ def help_menu():
     print('- good luck, have fun!              ')
     title_screen()
 
-# Game Functionality #
-def start_game():
 
+### MAP ###
 
-# Map #
-#
 # player starts at b3
 # ----------------
 # |a1|a2|a3|a4|a5|
@@ -295,3 +294,103 @@ zonemap = {
         'RIGHT': None,
     },
 }
+
+### GAME INTERACTIVITY ###
+def print_location():
+    print('\n' + ('#' * (4 + len(myPlayer.location))))
+    print('#' + myPlayer.location.upper() + ' #')
+    print('#' + zonemap[myPlayer.position][DESCRIPTION] + ' #')
+    print('\n' + ('#' * (4 + len(myPlayer.location))))
+
+
+def prompt():
+    print('\n' '===========================')
+    print('What would you like to do?')
+    action = input('>')
+    acceptable_actions = ['move' 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look']
+    while action.lower() not in acceptable_actions:
+        print('I do not understand, try another command')
+        action = input('>')
+    if action.lower() == 'quit':
+        sys.exit()
+    elif action.lower() in ['move' 'go', 'travel', 'walk']:
+        player_move(action.lower())
+    elif action.lower() in ['examine', 'inspect', 'interact', 'look']:
+        player_examine(action.lower())
+
+
+def player_move(myAction):
+    ask = 'Where would you like to go?\n'
+    dest = input(ask)
+    if dest in ['up', 'north']:
+        destination = zonemap[myPlayer.location][UP]
+        movement_handler(destination)
+    elif dest in ['left', 'west']:
+        destination = zonemap[myPlayer.location][LEFT]
+        movement_handler(destination)
+    elif dest in ['east', 'right']:
+        destination = zonemap[myPlayer.location][RIGHT]
+        movement_handler(destination)
+    elif dest in ['south', 'down']:
+        destination = zonemap[myPlayer.location][DOWN]
+        movement_handler(destination)
+
+def movement_handler(destination):
+    print('\n' + 'You have moved to the ' + destination + '.')
+    myPlayer.location = destination
+    print_location()
+
+def player_examine(action):
+    if [myPlayer.location][SOLVED]:
+        print('You have already explored and solved this area')
+    else:
+        print('You need to solve something here')
+
+### GAME FUNCTIONALITY ###
+def start_game():
+    return
+
+def main_game_loop():
+    while myPlayer.game_over is False:
+        prompt()
+        # handle if puzzles have been solved, boss defeated, explored everything, etc
+
+
+
+def setup_game():
+    os.system('clear')
+
+    #### NAME AND ROLE ###
+    question1 = 'Hello friend, what is your name?\n'
+    for character in question1:
+        sys.stdout.write(character)
+        sys.stdout.flush()
+        time.sleep(0.05)
+    player_name = input('> ')
+    myPlayer.name = player_name
+    ### ROLE HANDLING ###
+    question2 = 'Tell me friend, what role do you want?\n'
+    question2added = '(You can choose a warrior, mage or archer)\n'
+    for character in question2:
+        sys.stdout.write(character)
+        sys.stdout.flush()
+        time.sleep(0.05)
+        for character in question2added:
+            sys.stdout.write(character)
+            sys.stdout.flush()
+            time.sleep(0.01)
+    player_job = input('> ')
+    valid_jobs = ['warrior', 'mage', 'archer']
+    if player_job.lower() in valid_jobs:
+        myPlayer.job = player_job
+        print('You are now a' + player_job + '!\n')
+    while player_job.lower() not in valid_jobs:
+            player_job = input('> ')
+            if player_job.lower() in valid_jobs:
+                myPlayer.job = player_job
+                print('You are now a' + player_job + '!\n')
+
+    myPlayer.job = player_job
+
+
+title_screen()
