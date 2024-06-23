@@ -288,7 +288,7 @@ def prompt():
     print('\n===========================')
     print('What would you like to do?')
     action = input('>').lower()
-    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look']
+    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map']
     while action not in acceptable_actions:
         print('I do not understand, try another command')
         action = input('>').lower()
@@ -298,6 +298,8 @@ def prompt():
         player_move()
     elif action in ['examine', 'inspect', 'interact', 'look']:
         player_examine()
+    elif action == 'map':
+        display_map()
 
 def player_move():
     ask = 'Where would you like to go?\n'
@@ -320,8 +322,20 @@ def movement_handler(destination):
         print('\nYou have moved to the ' + destination + '.')
         my_player.location = destination
         print_location()
+        display_map()  # Show the map after moving
     else:
         print("You can't go that way!")
+
+def display_map():
+    rows, cols = 4, 5
+    map_grid = [["." for _ in range(cols)] for _ in range(rows)]
+    location = my_player.location
+    row = ord(location[0]) - ord('a')
+    col = int(location[1]) - 1
+    map_grid[row][col] = "P"
+    print("\nMap:")
+    for row in map_grid:
+        print(" ".join(row))
 
 def player_examine():
     location = my_player.location
