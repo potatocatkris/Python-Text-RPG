@@ -1,12 +1,7 @@
 # Python-Text-RPG
-Text based game made in Python following a YT video
+- Text based game made in Python following a YT video, I'll slowly add more and better features as I learn then from other videos. 
 
 # Controls #
-
-- use up, down, left, right to move
-- type your commands to do them
-- use "look" to inspect something
-
 
 # Map #
 
