@@ -7,7 +7,7 @@ import random
 
 SCREEN_WIDTH = 100
 
-### PLAYER SETUP ###
+# PLAYER SETUP #
 class Player:
     def __init__(self):
         self.name = ''
@@ -20,7 +20,7 @@ class Player:
 
 my_player = Player()
 
-### TITLE SCREEN ###
+# TITLE SCREEN #
 def title_screen_selection():
     option = input(">").lower()
     if option == "play":
@@ -59,8 +59,7 @@ def help_menu():
     print('####################################')
     title_screen()
 
-
-### MAP ###
+# MAP #
 
 ZONENAME = 'zonename'
 DESCRIPTION = 'description'
@@ -75,9 +74,10 @@ solved_places = {f'{row}{col}': False for row in 'abcd' for col in '12345'}
 
 zonemap = {
     'a1': {
-        ZONENAME: 'Guard Tower',
-        DESCRIPTION: 'The village\'s archers are stationed here',
-        EXAMINATION: 'Archers watch down at you from up above',
+        ZONENAME: 'Ranger Tower',
+        DESCRIPTION: 'The village\'s rangers are stationed here',
+        EXAMINATION: 'There are new recruits being trained by the Lead Ranger. Inside the tower there are many books '
+                     'on survival and cooking.',
         SOLVED: False,
         UP: None,
         DOWN: 'b1',
@@ -86,8 +86,9 @@ zonemap = {
     },
     'a2': {
         ZONENAME: 'Town Market',
-        DESCRIPTION: 'Trader has items, if you have gold',
-        EXAMINATION: 'This trader has everything you need and more',
+        DESCRIPTION: 'People from all over come here to trade and barter their goods',
+        EXAMINATION: 'Many kiosks are set up with items from various vendors for sale. Everyone seems to be yelling '
+                     'and spitting on each other',
         SOLVED: False,
         UP: None,
         DOWN: 'b2',
@@ -97,7 +98,8 @@ zonemap = {
     'a3': {
         ZONENAME: 'Town Square',
         DESCRIPTION: 'The place to meet with everyone',
-        EXAMINATION: 'This place is always packed with people',
+        EXAMINATION: 'Everywhere you look there are people talking amongst themselves. I should try talking to some '
+                     'of the locals here and see what is going on in town. ',
         SOLVED: False,
         UP: None,
         DOWN: 'b3',
@@ -107,7 +109,8 @@ zonemap = {
     'a4': {
         ZONENAME: 'Blacksmith',
         DESCRIPTION: 'Axes, shields, armors and such',
-        EXAMINATION: 'I better not touch anything',
+        EXAMINATION: 'For being a blacksmith shop, the place is surprisingly clean. There are many metals and '
+                     'precious gems here. ',
         SOLVED: False,
         UP: None,
         DOWN: 'b4',
@@ -116,8 +119,9 @@ zonemap = {
     },
     'a5': {
         ZONENAME: 'Town Barracks',
-        DESCRIPTION: 'Guards and archers home',
-        EXAMINATION: 'Safest part of town',
+        DESCRIPTION: 'Village guards work and sleep here',
+        EXAMINATION: 'One of the captains is yelling at the new recruits while another is laughing at the recruits '
+                     'for missing their shot with a bow ',
         SOLVED: False,
         UP: None,
         DOWN: 'b5',
@@ -276,11 +280,11 @@ zonemap = {
     },
 }
 
-### GAME INTERACTIVITY ###
+# GAME INTERACTIVITY #
 def print_location():
     location = my_player.location
     print('\n' + ('#' * (4 + len(location))))
-    print('# ' + location.upper() + ' #')
+    print('# ' + zonemap[location][ZONENAME] + ' #')
     print('# ' + zonemap[location][DESCRIPTION] + ' #')
     print('\n' + ('#' * (4 + len(location))))
 
@@ -288,7 +292,7 @@ def prompt():
     print('\n===========================')
     print('What would you like to do?')
     action = input('>').lower()
-    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map']
+    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc']
     while action not in acceptable_actions:
         print('I do not understand, try another command')
         action = input('>').lower()
@@ -300,6 +304,8 @@ def prompt():
         player_examine()
     elif action == 'map':
         display_map()
+    elif action == 'npc':
+        interact_with_npc()
 
 def player_move():
     ask = 'Where would you like to go?\n'
@@ -319,7 +325,7 @@ def player_move():
 
 def movement_handler(destination):
     if destination:
-        print('\nYou have moved to the ' + destination + '.')
+        print('\nYou have moved to the ' + zonemap[destination][ZONENAME] + '.')
         my_player.location = destination
         print_location()
         display_map()  # Show the map after moving
@@ -344,6 +350,27 @@ def player_examine():
     else:
         print(zonemap[location][EXAMINATION])
 
+def interact_with_npc():
+    location = my_player.location
+    if location in npcs:
+        for npc in npcs[location]:
+            npc.talk()
+            action = input(f"Would you like to (1) Accept quest (2) Trade (3) Hear rumors (4) Leave? ").lower()
+            if action == '1':
+                npc.offer_quests()
+            elif action == '2':
+                trade_item = input(f"What would you like to trade? ")
+                receive_item = input(f"What do you want in return? ")
+                npc.barter(trade_item, receive_item)
+            elif action == '3':
+                npc.share_rumors()
+            elif action == '4':
+                print("You decide to leave.")
+            else:
+                print("Invalid action.")
+    else:
+        print("There are no NPCs here.")
+
 ### GAME FUNCTIONALITY ###
 def start_game():
     setup_game()
@@ -356,12 +383,12 @@ def main_game_loop():
 def setup_game():
     os.system('clear')
 
-    ### NAME AND ROLE ###
+    # NAME AND ROLE #
     question1 = ' Hello friend, what is your name?\n'
     for character in question1:
         sys.stdout.write(character)
         sys.stdout.flush()
-        time.sleep(0.1)
+        time.sleep(0.05)
     player_name = input('> ')
     my_player.name = player_name
 
@@ -370,11 +397,11 @@ def setup_game():
     for character in question2:
         sys.stdout.write(character)
         sys.stdout.flush()
-        time.sleep(0.1)
+        time.sleep(0.05)
     for character in question2added:
         sys.stdout.write(character)
         sys.stdout.flush()
-        time.sleep(0.01)
+        time.sleep(0.05)
     player_role = input('> ').lower()
     valid_roles = ['warrior', 'mage', 'archer']
     while player_role not in valid_roles:
@@ -382,7 +409,7 @@ def setup_game():
     my_player.role = player_role
     print(f'You are now a {player_role}!\n')
 
-    ### PLAYER STATS ###
+    # PLAYER STATS #
     if my_player.role == 'warrior':
         my_player.hp = 150
         my_player.mp = 50
@@ -393,10 +420,10 @@ def setup_game():
         my_player.hp = 100
         my_player.mp = 100
 
-    ### INTRO ###
+    # INTRO #
     intro_speeches = [
         f'Welcome, {player_name} the {player_role},\n',
-        "This world is dangerous, you picked a good role\n",
+        "This world is dangerous, you've picked a good role\n",
         "I hope you survive these wild lands\n",
         "Make sure to grab health and mana potions\n",
         "Good luck to you\n"
@@ -408,9 +435,98 @@ def setup_game():
             time.sleep(0.05)
 
     os.system('clear')
-    print("###########################")
+    print("############################")
     print("### Let's start the game ###")
-    print("###########################")
+    print("############################")
     main_game_loop()
+
+# NPC's #
+class NPC:
+    def __init__(self, name, role, location, quests=None, inventory=None, rumors=None, dialogue=None):
+        self.name = name
+        self.role = role
+        self.location = location
+        self.quests = quests if quests else []
+        self.inventory = inventory if inventory else []
+        self.rumors = rumors if rumors else []
+        self.dialogue = dialogue if dialogue else {}
+
+    def talk(self):
+        if 'greeting' in self.dialogue:
+            print(f"{self.name} says: '{self.dialogue['greeting']}'")
+        else:
+            print(f"{self.name} says: 'Hello there, traveler!'")
+
+    def offer_quests(self):
+        if self.quests:
+            for quest in self.quests:
+                print(f"{self.name} offers you a quest: {quest}")
+        else:
+            print(f"{self.name} has no quests for you.")
+
+    def buy(self, item):
+        self.inventory.append(item)
+        print(f"{self.name} buys {item}")
+
+    def sell(self, item):
+        if item in self.inventory:
+            self.inventory.remove(item)
+            print(f"{self.name} sells {item}")
+        else:
+            print(f"{self.name} doesn't have {item}")
+
+    def barter(self, item_to_give, item_to_receive):
+        if item_to_give in self.inventory:
+            self.inventory.remove(item_to_give)
+            self.inventory.append(item_to_receive)
+            print(f"{self.name} barters {item_to_give} for {item_to_receive}")
+        else:
+            print(f"{self.name} doesn't have {item_to_give}")
+
+    def share_rumors(self):
+        if self.rumors:
+            for rumor in self.rumors:
+                print(f"{self.name} whispers: '{rumor}'")
+        else:
+            print(f"{self.name} has no rumors to share.")
+
+# Example NPCs
+npc1 = NPC(
+    name="Gorath", 
+    role="Blacksmith", 
+    location="a4", 
+    quests=["Find the lost sword"], 
+    inventory=["Iron Sword"], 
+    rumors=["The king is looking for brave adventurers."],
+    dialogue={'greeting': "Welcome to my blacksmith shop, adventurer! How can I assist you today?"}
+)
+npc2 = NPC(
+    name="Elara", 
+    role="Merchant", 
+    location="a2", 
+    quests=["Deliver this package"], 
+    inventory=["Health Potion", "Mana Potion"], 
+    rumors=["A dragon was seen near the mountains."],
+    dialogue={'greeting': "Hello! Care to trade some goods?"}
+)
+npc3 = NPC(
+    name="Arwen", 
+    role="Head Ranger", 
+    location="a1", 
+    quests=["Collect materials for a basic bow and arrow"], 
+    inventory=["Basic Bow", "Arrows"], 
+    rumors=["The forest is teeming with wild creatures at night."],
+    dialogue={
+        'greeting': "Welcome to the Ranger Tower, brave adventurer. I'm here to help you survive the wild.",
+        'quest_offer': "I have a quest for you. Can you collect the materials needed for a basic bow and some arrows?",
+        'trade': "I can trade you a Basic Bow and some Arrows for the right materials."
+    }
+)
+
+npcs = {
+    'a1': [npc3],
+    'a2': [npc2],
+    'a4': [npc1]
+}
 
 title_screen()
