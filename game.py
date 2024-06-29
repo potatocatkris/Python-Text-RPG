@@ -1,11 +1,10 @@
-import cmd
-import textwrap
-import sys
 import os
+import pickle
+import sys
 import time
-import random
 
 SCREEN_WIDTH = 100
+
 
 # PLAYER SETUP #
 class Player:
@@ -18,49 +17,77 @@ class Player:
         self.location = 'b3'
         self.game_over = False
 
+
 my_player = Player()
+
 
 # TITLE SCREEN #
 def title_screen_selection():
     option = input(">").lower()
     if option == "play":
-        start_game() # Placeholder until written
+        start_game()
     elif option == "help":
         help_menu()
-    elif option == "quit":
+    elif option == "load":
+        load_game()
+        main_game_loop()
+    elif option == "exit":
         sys.exit()
-    while option not in ['play', 'help', 'quit']:
+    while option not in ['play', 'help', 'load', 'exit']:
         print("Please enter a valid command")
         option = input("> ").lower()
         if option == "play":
-            start_game()  # Placeholder until written
+            start_game()
         elif option == "help":
             help_menu()
-        elif option == "quit":
+        elif option == "load":
+            load_game()
+            main_game_loop()
+        elif option == "exit":
             sys.exit()
+
 
 def title_screen():
     os.system('clear')
-    print('###############################')
-    print('### Welcome to the Text RPG ###')
-    print('###############################')
-    print('#           - Play -          #')
-    print('#           - Help -          #')
-    print('#           - Quit -          #')
-    print('#  Copyright 2024 Krystian S  #')
+    print('####################################################################################################')
+    print('#                                                                                                  #')
+    print('#                 #     # ### #       ######     #          #    #     # ######   #####            #')
+    print('#                 #  #  #  #  #       #     #    #         # #   ##    # #     # #     #           #')
+    print('#                 #  #  #  #  #       #     #    #        #   #  # #   # #     # #                 #')
+    print('#                 #  #  #  #  #       #     #    #       #     # #  #  # #     #  #####            #')
+    print('#                 #  #  #  #  #       #     #    #       ####### #   # # #     #       #           #')
+    print('#                 #  #  #  #  #       #     #    #       #     # #    ## #     # #     #           #')
+    print('#                  ## ##  ### ####### ######     ####### #     # #     # ######   #####            #')
+    print('#                                                                                                  #')
+    print('#                 ####### ####### #     # #######    ######  ######   #####                        #')
+    print('#                    #    #        #   #     #       #     # #     # #     #                       #')
+    print('#                    #    #         # #      #       #     # #     # #                             #')
+    print('#                    #    #####      #       #       ######  ######  #  ####                       #')
+    print('#                    #    #         # #      #       #   #   #       #     #                       #')
+    print('#                    #    #        #   #     #       #    #  #       #     #                       #')
+    print('#                    #    ####### #     #    #       #     # #        #####                        #')
+    print('#                                                                                                  #')
+    print('#                                           - Play -                                               #')
+    print('#                                           - Load -                                               #')
+    print('#                                           - Help -                                               #')
+    print('#                                           - Exit -                                               #')
+    print('#                                  Copyright 2024 Krystian S                                       #')
+    print('####################################################################################################')
+
     title_screen_selection()
 
+
 def help_menu():
-    print('####################################')
-    print('- use up, down, left, right to move ')
+    print('####################################################################################################')
+    print('- use commands such as move, go,    ')
     print('- type your commands to do them     ')
     print('- use "look" to inspect something   ')
     print('- good luck, have fun!              ')
-    print('####################################')
+    print('####################################################################################################')
     title_screen()
 
-# MAP #
 
+# MAP #
 ZONENAME = 'zonename'
 DESCRIPTION = 'description'
 EXAMINATION = 'examine'
@@ -280,6 +307,7 @@ zonemap = {
     },
 }
 
+
 # GAME INTERACTIVITY #
 def print_location():
     location = my_player.location
@@ -288,11 +316,13 @@ def print_location():
     print('# ' + zonemap[location][DESCRIPTION] + ' #')
     print('\n' + ('#' * (4 + len(location))))
 
+
 def prompt():
     print('\n===========================')
     print('What would you like to do?')
     action = input('>').lower()
-    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc']
+    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc',
+                          'save']
     while action not in acceptable_actions:
         print('I do not understand, try another command')
         action = input('>').lower()
@@ -306,6 +336,9 @@ def prompt():
         display_map()
     elif action == 'npc':
         interact_with_npc()
+    elif action == 'save':
+        save_game()
+
 
 def player_move():
     ask = 'Where would you like to go?\n'
@@ -323,6 +356,7 @@ def player_move():
         return
     movement_handler(destination)
 
+
 def movement_handler(destination):
     if destination:
         print('\nYou have moved to the ' + zonemap[destination][ZONENAME] + '.')
@@ -331,6 +365,7 @@ def movement_handler(destination):
         display_map()  # Show the map after moving
     else:
         print("You can't go that way!")
+
 
 def display_map():
     rows, cols = 4, 5
@@ -343,12 +378,14 @@ def display_map():
     for row in map_grid:
         print(" ".join(row))
 
+
 def player_examine():
     location = my_player.location
     if zonemap[location][SOLVED]:
         print('You have already explored and solved this area')
     else:
         print(zonemap[location][EXAMINATION])
+
 
 def interact_with_npc():
     location = my_player.location
@@ -371,14 +408,17 @@ def interact_with_npc():
     else:
         print("There are no NPCs here.")
 
-### GAME FUNCTIONALITY ###
+
+# GAME FUNCTIONALITY #
 def start_game():
     setup_game()
     main_game_loop()
 
+
 def main_game_loop():
     while not my_player.game_over:
         prompt()
+
 
 def setup_game():
     os.system('clear')
@@ -440,6 +480,7 @@ def setup_game():
     print("############################")
     main_game_loop()
 
+
 # NPC's #
 class NPC:
     def __init__(self, name, role, location, quests=None, inventory=None, rumors=None, dialogue=None):
@@ -490,32 +531,33 @@ class NPC:
         else:
             print(f"{self.name} has no rumors to share.")
 
+
 # Example NPCs
 npc1 = NPC(
-    name="Gorath", 
-    role="Blacksmith", 
-    location="a4", 
-    quests=["Find the lost sword"], 
-    inventory=["Iron Sword"], 
+    name="Harry",
+    role="Blacksmith",
+    location="a4",
+    quests=["Find the lost sword"],
+    inventory=["Iron Sword"],
     rumors=["The king is looking for brave adventurers."],
     dialogue={'greeting': "Welcome to my blacksmith shop, adventurer! How can I assist you today?"}
 )
 npc2 = NPC(
-    name="Elara", 
-    role="Merchant", 
-    location="a2", 
-    quests=["Deliver this package"], 
-    inventory=["Health Potion", "Mana Potion"], 
+    name="Elara",
+    role="Merchant",
+    location="a2",
+    quests=["Deliver this package"],
+    inventory=["Health Potion", "Mana Potion"],
     rumors=["A dragon was seen near the mountains."],
     dialogue={'greeting': "Hello! Care to trade some goods?"}
 )
 npc3 = NPC(
-    name="Arwen", 
-    role="Head Ranger", 
-    location="a1", 
-    quests=["Collect materials for a basic bow and arrow"], 
-    inventory=["Basic Bow", "Arrows"], 
-    rumors=["The forest is teeming with wild creatures at night."],
+    name="Arwen",
+    role="Head Ranger",
+    location="a1",
+    quests=["Collect materials for a basic bow and arrow"],
+    inventory=["Basic Bow", "Arrows"],
+    rumors=["Something is disturbing the forrest at night time."],
     dialogue={
         'greeting': "Welcome to the Ranger Tower, brave adventurer. I'm here to help you survive the wild.",
         'quest_offer': "I have a quest for you. Can you collect the materials needed for a basic bow and some arrows?",
@@ -528,5 +570,24 @@ npcs = {
     'a2': [npc2],
     'a4': [npc1]
 }
+
+
+# Save and Load Functions
+def save_game(filename='savefile.pkl'):
+    with open(filename, 'wb') as f:
+        pickle.dump(my_player, f)
+        print("Game saved successfully.")
+
+
+def load_game(filename='savefile.pkl'):
+    global my_player
+    if os.path.exists(filename):
+        with open(filename, 'rb') as f:
+            my_player = pickle.load(f)
+            print("Game loaded successfully.")
+            print_location()  # Display the current location after loading
+    else:
+        print("No save file found.")
+
 
 title_screen()
