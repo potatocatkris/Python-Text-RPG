@@ -1,5 +1,5 @@
 ### Python-Text-RPG ###
-- Text based game made in Python following a YT video, I'll slowly add more and better features as I learn then from other videos. 
+- Text based game made in Python following several YT video, I'll slowly add more and better features as I learn from other videos. 
 
 # Controls #
 
