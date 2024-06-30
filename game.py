@@ -2,9 +2,9 @@ import os
 import pickle
 import sys
 import time
+import random
 
 SCREEN_WIDTH = 100
-
 
 # PLAYER SETUP #
 class Player:
@@ -13,12 +13,99 @@ class Player:
         self.role = ''
         self.hp = 0
         self.mp = 0
+        self.strength = 0
+        self.agility = 0
+        self.intelligence = 0
+        self.spirit = 0
+        self.luck = 0
         self.status_effects = []
         self.location = 'b3'
+        self.inventory = []
         self.game_over = False
 
+    def melee_damage(self):
+        return self.strength * 2
+
+    def range_damage(self):
+        return self.agility * 1.5
+
+    def magic_damage(self):
+        return self.intelligence * 2
+
+    def health_regen(self):
+        return self.spirit * 0.1
+
+    def mana_regen(self):
+        return self.spirit * 0.1
+
+    def loot_drop_chance(self):
+        return self.luck * 0.05
+
+    def add_to_inventory(self, item):
+        self.inventory.append(item)
+        if isinstance(item, Gold):
+            print(f"Added {item.amount} gold to your inventory.")
+        else:
+            print(f"Added {item.name} to your inventory.")
+
+    def use_item(self, item_name):
+        for item in self.inventory:
+            if item.name == item_name:
+                if isinstance(item, Potion):
+                    if item.effect == "heal":
+                        self.hp += item.magnitude
+                        print(f"You used a {item.name}. It healed {item.magnitude} HP.")
+                    elif item.effect == "mana":
+                        self.mp += item.magnitude
+                        print(f"You used a {item.name}. It restored {item.magnitude} MP.")
+                self.inventory.remove(item)
+                return
+        print(f"You don't have a {item_name}.")
 
 my_player = Player()
+
+# MONSTER SETUP #
+class Monster:
+    def __init__(self, name, hp, attack, loot_table):
+        self.name = name
+        self.hp = hp
+        self.attack = attack
+        self.loot_table = loot_table
+
+    def is_alive(self):
+        return self.hp > 0
+
+    def take_damage(self, damage):
+        self.hp -= damage
+
+    def generate_loot(self):
+        loot = []
+        for item, chance in self.loot_table.items():
+            if random.random() < chance:
+                loot.append(item)
+        return loot
+
+# ITEM SETUP #
+class Item:
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+class Gold(Item):
+    def __init__(self, amount):
+        super().__init__("Gold", amount)
+        self.amount = amount
+
+class Potion(Item):
+    def __init__(self, name, value, effect, magnitude):
+        super().__init__(name, value)
+        self.effect = effect
+        self.magnitude = magnitude
+
+class Equipment(Item):
+    def __init__(self, name, value, type):
+        super().__init__(name, value)
+        self.type = type  # e.g., "weapon", "armor"
 
 
 # TITLE SCREEN #
@@ -45,7 +132,6 @@ def title_screen_selection():
             main_game_loop()
         elif option == "exit":
             sys.exit()
-
 
 def title_screen():
     os.system('clear')
@@ -76,16 +162,14 @@ def title_screen():
 
     title_screen_selection()
 
-
 def help_menu():
     print('####################################################################################################')
-    print('- use commands such as move, go,    ')
-    print('- type your commands to do them     ')
-    print('- use "look" to inspect something   ')
-    print('- good luck, have fun!              ')
+    print('-                  use commands such go, examine, description, npc                                  ')
+    print('-                              type your commands to do them                                        ')
+    print('-                                                                                                   ')
+    print('-                                      good luck, have fun!                                         ')
     print('####################################################################################################')
     title_screen()
-
 
 # MAP #
 ZONENAME = 'zonename'
@@ -104,7 +188,7 @@ zonemap = {
         ZONENAME: 'Ranger Tower',
         DESCRIPTION: 'The village\'s rangers are stationed here',
         EXAMINATION: 'There are new recruits being trained by the Lead Ranger. Inside the tower there are many books '
-                     'on survival and cooking.',
+                     'on survival and cooking',
         SOLVED: False,
         UP: None,
         DOWN: 'b1',
@@ -126,7 +210,7 @@ zonemap = {
         ZONENAME: 'Town Square',
         DESCRIPTION: 'The place to meet with everyone',
         EXAMINATION: 'Everywhere you look there are people talking amongst themselves. I should try talking to some '
-                     'of the locals here and see what is going on in town. ',
+                     'of the locals here and see what is going on around town ',
         SOLVED: False,
         UP: None,
         DOWN: 'b3',
@@ -137,7 +221,7 @@ zonemap = {
         ZONENAME: 'Blacksmith',
         DESCRIPTION: 'Axes, shields, armors and such',
         EXAMINATION: 'For being a blacksmith shop, the place is surprisingly clean. There are many metals and '
-                     'precious gems here. ',
+                     'precious gems here ',
         SOLVED: False,
         UP: None,
         DOWN: 'b4',
@@ -148,7 +232,7 @@ zonemap = {
         ZONENAME: 'Town Barracks',
         DESCRIPTION: 'Village guards work and sleep here',
         EXAMINATION: 'One of the captains is yelling at the new recruits while another is laughing at the recruits '
-                     'for missing their shot with a bow ',
+                     'for missing their shot with a bow',
         SOLVED: False,
         UP: None,
         DOWN: 'b5',
@@ -156,9 +240,10 @@ zonemap = {
         RIGHT: None,
     },
     'b1': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Wizard Tower',
+        DESCRIPTION: 'The dark tower has dark windows with no visible light inside',
+        EXAMINATION: 'Young wizards are training their magic by shooting fireballs at training dummies. Inside the tower'
+                     'is a massive library of books',
         SOLVED: False,
         UP: 'a1',
         DOWN: 'c1',
@@ -166,9 +251,9 @@ zonemap = {
         RIGHT: 'b2',
     },
     'b2': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Alchemy Shop',
+        DESCRIPTION: 'You smell something very pleasant as you walk in, the shop owner greets you with a smile',
+        EXAMINATION: 'The shop is covered in herbs and potions. In the other room is recipes and books on alchemy',
         SOLVED: False,
         UP: 'a2',
         DOWN: 'c2',
@@ -176,9 +261,9 @@ zonemap = {
         RIGHT: 'b3',
     },
     'b3': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Home',
+        DESCRIPTION: 'It ain\'t much, but its honest living',
+        EXAMINATION: 'This is the home I grew up in, I still have my hunting trophies on the walls',
         SOLVED: False,
         UP: 'a3',
         DOWN: 'c3',
@@ -186,9 +271,10 @@ zonemap = {
         RIGHT: 'b4',
     },
     'b4': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Butcher Shop',
+        DESCRIPTION: 'This place definitely doesnt smell as good as the alchemy shop',
+        EXAMINATION: 'You hear the hacking and pounding noises as an apprentice butcher chops a boar. There is a list '
+                     'animals that need to be hunted',
         SOLVED: False,
         UP: 'a4',
         DOWN: 'c4',
@@ -196,9 +282,10 @@ zonemap = {
         RIGHT: 'b5',
     },
     'b5': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Tavern',
+        DESCRIPTION: 'Townspeople favorite spot once they got off work',
+        EXAMINATION: 'Tavern owner greets you warmly with a pint of ale, the taverns wife offers you some food. There is '
+                     'a bard playing in the background',
         SOLVED: False,
         UP: 'a5',
         DOWN: 'c5',
@@ -206,9 +293,9 @@ zonemap = {
         RIGHT: None,
     },
     'c1': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Grasslands Farm',
+        DESCRIPTION: 'A humble farm that supplies the town',
+        EXAMINATION: 'You see a family of farmers tending to their land. There are plenty of livestock roaming around',
         SOLVED: False,
         UP: 'b1',
         DOWN: 'd1',
@@ -216,9 +303,9 @@ zonemap = {
         RIGHT: 'c2',
     },
     'c2': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Grasslands Outpost',
+        DESCRIPTION: 'A small outpost outside of town to protect the outside perimteter',
+        EXAMINATION: 'There are mounted archers roaming around. The infantry is protecting the farmers',
         SOLVED: False,
         UP: 'b2',
         DOWN: 'd2',
@@ -226,9 +313,10 @@ zonemap = {
         RIGHT: 'c3',
     },
     'c3': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Grasslands',
+        DESCRIPTION: 'Open fields with some hills',
+        EXAMINATION: 'A gentle breeze blows towards you, there are some houses built on the hills. You can see people'
+                     'walking around on the roads',
         SOLVED: False,
         UP: 'b3',
         DOWN: 'd3',
@@ -236,9 +324,10 @@ zonemap = {
         RIGHT: 'c4',
     },
     'c4': {
-        ZONENAME: '',
-        DESCRIPTION: '',
-        EXAMINATION: '',
+        ZONENAME: 'Grasslands',
+        DESCRIPTION: 'Open fields with some hills',
+        EXAMINATION: 'A gentle breeze blows towards you, there are some houses built on the hills. You can see people'
+                     'walking around on the roads',
         SOLVED: False,
         UP: 'b4',
         DOWN: 'd4',
@@ -246,8 +335,8 @@ zonemap = {
         RIGHT: 'c5',
     },
     'c5': {
-        ZONENAME: '',
-        DESCRIPTION: '',
+        ZONENAME: 'Forest',
+        DESCRIPTION: 'A dark forest',
         EXAMINATION: '',
         SOLVED: False,
         UP: 'b5',
@@ -256,7 +345,7 @@ zonemap = {
         RIGHT: None,
     },
     'd1': {
-        ZONENAME: '',
+        ZONENAME: 'Dense Forest',
         DESCRIPTION: '',
         EXAMINATION: '',
         SOLVED: False,
@@ -307,22 +396,17 @@ zonemap = {
     },
 }
 
-
 # GAME INTERACTIVITY #
 def print_location():
     location = my_player.location
-    print('\n' + ('#' * (4 + len(location))))
-    print('# ' + zonemap[location][ZONENAME] + ' #')
+    print('\n' + ('#' * (80 + len(location))))
     print('# ' + zonemap[location][DESCRIPTION] + ' #')
-    print('\n' + ('#' * (4 + len(location))))
-
 
 def prompt():
-    print('\n===========================')
+    print('\n=========================')
     print('What would you like to do?')
     action = input('>').lower()
-    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc',
-                          'save']
+    acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc', 'save', 'hunt']
     while action not in acceptable_actions:
         print('I do not understand, try another command')
         action = input('>').lower()
@@ -338,7 +422,18 @@ def prompt():
         interact_with_npc()
     elif action == 'save':
         save_game()
-
+    elif action == 'hunt':
+        if my_player.location in ['c3', 'c5', 'd1', 'd5']:  # Locations where monsters are present
+            goblin_loot_table = {
+                Gold(10): 0.5,  # 50% chance to drop 10 gold
+                Potion("Health Potion", 10, "heal", 20): 0.2,  # 20% chance to drop a health potion
+                Potion("Mana Potion", 10, "mana", 20): 0.2,  # 20% chance to drop a mana potion
+                Equipment("Iron Sword", 50, "weapon"): 0.1  # 10% chance to drop an iron sword
+            }
+            goblin = Monster("Goblin", 30, 5, goblin_loot_table)
+            combat(my_player, goblin)
+        else:
+            print("There are no monsters to hunt here.")
 
 def player_move():
     ask = 'Where would you like to go?\n'
@@ -356,7 +451,6 @@ def player_move():
         return
     movement_handler(destination)
 
-
 def movement_handler(destination):
     if destination:
         print('\nYou have moved to the ' + zonemap[destination][ZONENAME] + '.')
@@ -365,7 +459,6 @@ def movement_handler(destination):
         display_map()  # Show the map after moving
     else:
         print("You can't go that way!")
-
 
 def display_map():
     rows, cols = 4, 5
@@ -378,14 +471,12 @@ def display_map():
     for row in map_grid:
         print(" ".join(row))
 
-
 def player_examine():
     location = my_player.location
     if zonemap[location][SOLVED]:
         print('You have already explored and solved this area')
     else:
         print(zonemap[location][EXAMINATION])
-
 
 def interact_with_npc():
     location = my_player.location
@@ -408,17 +499,14 @@ def interact_with_npc():
     else:
         print("There are no NPCs here.")
 
-
 # GAME FUNCTIONALITY #
 def start_game():
     setup_game()
     main_game_loop()
 
-
 def main_game_loop():
     while not my_player.game_over:
         prompt()
-
 
 def setup_game():
     os.system('clear')
@@ -453,12 +541,27 @@ def setup_game():
     if my_player.role == 'warrior':
         my_player.hp = 150
         my_player.mp = 50
+        my_player.strength = 10
+        my_player.agility = 5
+        my_player.intelligence = 3
+        my_player.spirit = 4
+        my_player.luck = 2
     elif my_player.role == 'mage':
         my_player.hp = 50
         my_player.mp = 150
+        my_player.strength = 3
+        my_player.agility = 4
+        my_player.intelligence = 10
+        my_player.spirit = 7
+        my_player.luck = 2
     elif my_player.role == 'archer':
         my_player.hp = 100
         my_player.mp = 100
+        my_player.strength = 5
+        my_player.agility = 10
+        my_player.intelligence = 4
+        my_player.spirit = 5
+        my_player.luck = 3
 
     # INTRO #
     intro_speeches = [
@@ -479,7 +582,6 @@ def setup_game():
     print("### Let's start the game ###")
     print("############################")
     main_game_loop()
-
 
 # NPC's #
 class NPC:
@@ -531,7 +633,6 @@ class NPC:
         else:
             print(f"{self.name} has no rumors to share.")
 
-
 # Example NPCs
 npc1 = NPC(
     name="Harry",
@@ -539,11 +640,11 @@ npc1 = NPC(
     location="a4",
     quests=["Find the lost sword"],
     inventory=["Iron Sword"],
-    rumors=["The king is looking for brave adventurers."],
-    dialogue={'greeting': "Welcome to my blacksmith shop, adventurer! How can I assist you today?"}
+    rumors=["I heard the guards at the grassland outpost might know a thing about the lost sword"],
+    dialogue={'greeting': "Hello adventurer, this shop will have everything you need to defend yourself"}
 )
 npc2 = NPC(
-    name="Elara",
+    name="Lisa",
     role="Merchant",
     location="a2",
     quests=["Deliver this package"],
@@ -571,13 +672,11 @@ npcs = {
     'a4': [npc1]
 }
 
-
 # Save and Load Functions
 def save_game(filename='savefile.pkl'):
     with open(filename, 'wb') as f:
         pickle.dump(my_player, f)
         print("Game saved successfully.")
-
 
 def load_game(filename='savefile.pkl'):
     global my_player
@@ -589,5 +688,39 @@ def load_game(filename='savefile.pkl'):
     else:
         print("No save file found.")
 
+# COMBAT SYSTEM #
+def combat(player, monster):
+    while player.hp > 0 and monster.is_alive():
+        print(f"{player.name} HP: {player.hp} | {monster.name} HP: {monster.hp}")
+        action = input("Choose your action: (1) Attack (2) Magic (3) Flee\n> ")
+        if action == '1':
+            damage = player.melee_damage()
+            monster.take_damage(damage)
+            print(f"You dealt {damage} damage to the {monster.name}.")
+        elif action == '2':
+            damage = player.magic_damage()
+            monster.take_damage(damage)
+            player.mp -= 10  # assuming each magic attack costs 10 MP
+            print(f"You dealt {damage} magic damage to the {monster.name}.")
+        elif action == '3':
+            print("You fled from the battle.")
+            break
+
+        if monster.is_alive():
+            player.hp -= monster.attack
+            print(f"The {monster.name} attacked you for {monster.attack} damage.")
+
+        player.hp += player.health_regen()
+        player.mp += player.mana_regen()
+
+    if player.hp <= 0:
+        print("You have been defeated!")
+        player.game_over = True
+    elif not monster.is_alive():
+        print(f"You defeated the {monster.name}!")
+        loot = monster.generate_loot()
+        for item in loot:
+            player.add_to_inventory(item)
+            print(f"You found: {item.name} (Value: {item.value})")
 
 title_screen()
