@@ -6,14 +6,9 @@ import random
 
 SCREEN_WIDTH = 100
 
-
 # Function to clear the console based on the operating system
 def clear_screen():
-    if os.name == 'nt':  # For Windows
-        os.system('cls')
-    else:  # For Unix-based systems (Linux and macOS)
-        os.system('clear')
-
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 # PLAYER SETUP #
 class Player:
@@ -32,30 +27,18 @@ class Player:
         self.location = 'b3'
         self.game_over = False
         self.turn_count = 0  # For spirit-based regeneration
+        self.inventory = []
 
     def assign_stats(self):
-        if self.role == 'warrior':
-            self.strength = 5
-            self.agility = 3
-            self.intelligence = 1
-            self.spirit = 3
-            self.luck = 2
-        elif self.role == 'mage':
-            self.strength = 1
-            self.agility = 2
-            self.intelligence = 5
-            self.spirit = 3
-            self.luck = 3
-        elif self.role == 'archer':
-            self.strength = 3
-            self.agility = 5
-            self.intelligence = 2
-            self.spirit = 3
-            self.luck = 1
-
-        self.hp = 100 + self.strength * 1
-        self.mp = 50 + self.intelligence * 1
-        self.armor = self.agility * 1
+        role_stats = {
+            'warrior': (5, 3, 1, 3, 2),
+            'mage': (1, 2, 5, 3, 3),
+            'archer': (3, 5, 2, 3, 1)
+        }
+        self.strength, self.agility, self.intelligence, self.spirit, self.luck = role_stats[self.role]
+        self.hp = 100 + self.strength
+        self.mp = 50 + self.intelligence
+        self.armor = self.agility
 
     def melee_damage(self):
         return self.strength * 2
@@ -75,6 +58,29 @@ class Player:
         self.turn_count += 1
         self.regenerate()
 
+    def add_to_inventory(self, item):
+        if len(self.inventory) < 10:
+            self.inventory.append(item)
+            print(f"{item.name} added to inventory.")
+        else:
+            print("Inventory is full!")
+
+    def remove_from_inventory(self, item_name):
+        for item in self.inventory:
+            if item.name == item_name:
+                self.inventory.remove(item)
+                print(f"{item_name} removed from inventory.")
+                return item
+        print(f"No item named {item_name} in inventory.")
+        return None
+
+    def show_inventory(self):
+        if not self.inventory:
+            print("Inventory is empty.")
+        else:
+            print("Inventory:")
+            for item in self.inventory:
+                print(f"- {item}")
 
 class Monster:
     def __init__(self, name, hp, mp, strength, agility, intelligence, spirit, luck):
@@ -86,7 +92,7 @@ class Monster:
         self.intelligence = intelligence
         self.spirit = spirit
         self.luck = luck
-        self.armor = agility * 1
+        self.armor = agility
         self.status_effects = []
         self.turn_count = 0
 
@@ -116,7 +122,6 @@ class Monster:
     def is_alive(self):
         return self.hp > 0
 
-
 class Item:
     def __init__(self, name, quality, stat_effects):
         self.name = name
@@ -127,50 +132,76 @@ class Item:
         effects = ', '.join(f"{stat}: {value}" for stat, value in self.stat_effects.items())
         return f"{self.quality.title()} {self.name} ({effects})"
 
+class NPC:
+    def __init__(self, name, quests=None, inventory=None):
+        self.name = name
+        self.quests = quests if quests else []
+        self.inventory = inventory if inventory else []
+
+    def talk(self):
+        print(f"{self.name}: Hello, adventurer!")
+
+    def offer_quests(self):
+        if self.quests:
+            print(f"{self.name} offers you a quest: {self.quests[0]}")
+        else:
+            print(f"{self.name} has no quests for you.")
+
+    def barter(self, trade_item, receive_item):
+        print(f"{self.name} agrees to trade {trade_item} for {receive_item}.")
+
+    def share_rumors(self):
+        print(f"{self.name} shares some local rumors with you.")
+
+    def show_inventory(self):
+        if not self.inventory:
+            print(f"{self.name}'s inventory is empty.")
+        else:
+            print(f"{self.name}'s Inventory:")
+            for item in self.inventory:
+                print(f"- {item}")
+
+    def add_to_inventory(self, item):
+        if len(self.inventory) < 10:
+            self.inventory.append(item)
+            print(f"{item.name} added to {self.name}'s inventory.")
+        else:
+            print(f"{self.name}'s inventory is full!")
+
+    def remove_from_inventory(self, item_name):
+        for item in self.inventory:
+            if item.name == item_name:
+                self.inventory.remove(item)
+                print(f"{item_name} removed from {self.name}'s inventory.")
+                return item
+        print(f"No item named {item_name} in {self.name}'s inventory.")
+        return None
 
 # Game Items
-
-# Common Items
 training_sword = Item("Training Sword", "common", {"strength": 1})
 old_bow = Item("Old Bow", "common", {"agility": 1})
 used_staff = Item("Used Staff", "common", {"intelligence": 1})
 
 # Uncommon Items
 iron_mace = Item("Iron Sword", "uncommon", {"strength": 2, "agility": 1})
-oak_staff = Item("Oak Staff", "common", {"intelligence": 2, "spirit": 2})
-willow_bow = Item("Willow Bow", "common", {"agility": 2, "luck": 2})
+oak_staff = Item("Oak Staff", "uncommon", {"intelligence": 2, "spirit": 2})
+willow_bow = Item("Willow Bow", "uncommon", {"agility": 2, "luck": 2})
 
 # Rare Items
 mithril_axe = Item("Mithril Axe", "rare", {"strength": 5, "agility": 4, "hp": 20})
 ebony_staff = Item("Ebony Staff", "rare", {"intelligence": 5, "spirit": 4, "mp": 20})
 maple_bow = Item("Maple Bow", "rare", {"agility": 5, "luck": 4, "spirit": 2})
 
-#Epic Items
+# Epic Items
 troll_slayer = Item("Troll Slayer", "epic", {"strength": 12, "agility": 10, "hp": 50, "spirit": 6})
-rising_tides - Item("Rising Tides", "epic", {"intelligence": 12, "spirit": 10, "mp": 50, "luck": 6})
-nightdraw - Item("Nightdraw", "epic", {"agility": 12, "luck": 10, "spirit": 6, "hp": 50})
+rising_tides = Item("Rising Tides", "epic", {"intelligence": 12, "spirit": 10, "mp": 50, "luck": 6})
+nightdraw = Item("Nightdraw", "epic", {"agility": 12, "luck": 10, "spirit": 6, "hp": 50})
 
 # Loot tables for each rarity
-common_loot = [training_sword, Item("Training Sword", "common", {"strength": 1}),
-               old_bow, Item("Old Bow", "common", {"agility": 1}),
-               used_staff, Item("Old Staff", "common", {"intelligence": 1})
-               ]
-
-uncommon_loot = [iron_mace, Item("Iron Sword", "uncommon", {"strength": 2, "agility": 1}),
-                 oak_staff, Item("Oak Staff", "common", {"intelligence": 2, "spirit": 2}),
-                 willow_bow, Item("Willow Bow", "common", {"agility": 2, "luck": 2})
-                 ]
-
-rare_loot = [mithril_axe, Item("Mithril Axe", "rare", {"strength": 5, "agility": 4, "hp": 20}),
-             ebony_staff, Item("Ebony Staff", "rare", {"intelligence": 5, "spirit": 4, "mp": 20}),
-             maple_bow, Item("Maple Bow", "rare", {"agility": 5, "luck": 4, "spirit": 2})
-             ]
-
-epic_loot = [troll_slayer, Item("Troll Slayer", "epic", {"strength": 12, "agility": 10, "hp": 50, "spirit": 6}),
-             rising_tide, Item("Rising Tides", "epic", {"intelligence": 12, "spirit": 10, "mp": 50, "luck": 6}),
-             nightdraw, Item("Nightdraw", "epic", {"agility": 12, "luck": 10, "spirit": 6, "hp": 50})
-             ]
-
+common_loot = [training_sword, old_bow, used_staff]
+uncommon_loot = [iron_mace, oak_staff, willow_bow]
+rare_loot = [mithril_axe, ebony_staff, maple_bow]
+epic_loot = [troll_slayer, rising_tides, nightdraw]
 
 def drop_item(player):
     luck_modifier = player.luck * 1  # Each point of luck increases drop chance by 1%
@@ -185,12 +216,26 @@ def drop_item(player):
     else:
         return random.choice(common_loot)
 
+def display_battle_ui(player, monster):
+    clear_screen()
+    print("#################### BATTLE ####################")
+    print(f"Player: {player.name} | Role: {player.role}")
+    print(f"HP: {player.hp}/{100 + player.strength}    MP: {player.mp}/{50 + player.intelligence}")
+    print(f"Strength: {player.strength}  Agility: {player.agility}")
+    print(f"Intelligence: {player.intelligence}  Spirit: {player.spirit}")
+    print(f"Luck: {player.luck}  Armor: {player.armor}")
+    print("------------------------------------------------")
+    print(f"Monster: {monster.name}")
+    print(f"HP: {monster.hp}    MP: {monster.mp}")
+    print(f"Strength: {monster.strength}  Agility: {monster.agility}")
+    print(f"Intelligence: {monster.intelligence}  Spirit: {monster.spirit}")
+    print(f"Luck: {monster.luck}  Armor: {monster.armor}")
+    print("################################################")
 
 def battle(monster):
     print(f"A wild {monster.name} appears!")
     while monster.is_alive() and my_player.hp > 0:
-        print(f"{my_player.name}'s HP: {my_player.hp}, MP: {my_player.mp}")
-        print(f"{monster.name}'s HP: {monster.hp}, MP: {monster.mp}")
+        display_battle_ui(my_player, monster)
         action = input("Choose an action: (1) Attack (2) Use Skill (3) Use Item (4) Flee: ").lower()
         if action == '1':
             damage = my_player.melee_damage()  # Or ranged_damage() or magic_damage() based on action
@@ -217,17 +262,33 @@ def battle(monster):
         print(f"You defeated the {monster.name}!")
         dropped_item = drop_item(my_player)
         print(f"You found a {dropped_item}!")
+        my_player.add_to_inventory(dropped_item)
 
+def create_monster(monster_template):
+    return Monster(monster_template.name, monster_template.hp, monster_template.mp, monster_template.strength,
+                   monster_template.agility, monster_template.intelligence, monster_template.spirit, monster_template.luck)
 
 def hunt():
     location = my_player.location
     if 'monsters' in zonemap[location]:
         possible_monsters = zonemap[location]['monsters']
-        monster = random.choice(possible_monsters)
+        monster_template = random.choice(possible_monsters)
+        monster = create_monster(monster_template)
         battle(monster)
     else:
         print("There are no monsters to hunt here.")
 
+# Game Monsters
+boar_template = Monster("Boar", 20, 0, 5, 3, 1, 3, 1)
+wolf_template = Monster("Wolf", 50, 0, 7, 6, 3, 4, 2)
+bandit_template = Monster("Bandit", 100, 0, 6, 5, 3, 5, 3)
+troll_template = Monster("Forest Troll", 250, 100, 10, 10, 6, 5, 3)
+
+# NPCs
+npcs = {
+    'a3': [NPC("Town Elder", ["Find the lost book"], [used_staff])],
+    'b2': [NPC("Alchemist", ["Collect rare herbs"], [oak_staff])]
+}
 
 # TITLE SCREEN #
 def title_screen_selection():
@@ -254,46 +315,28 @@ def title_screen_selection():
         elif option == "exit":
             sys.exit()
 
-
 def title_screen():
     clear_screen()
-    print('####################################################################################################')
-    print('#                                                                                                  #')
-    print('#                 #     # ### #       ######     #          #    #     # ######   #####            #')
-    print('#                 #  #  #  #  #       #     #    #         # #   ##    # #     # #     #           #')
-    print('#                 #  #  #  #  #       #     #    #        #   #  # #   # #     # #                 #')
-    print('#                 #  #  #  #  #       #     #    #       #     # #  #  # #     #  #####            #')
-    print('#                 #  #  #  #  #       #     #    #       ####### #   # # #     #       #           #')
-    print('#                 #  #  #  #  #       #     #    #       #     # #    ## #     # #     #           #')
-    print('#                  ## ##  ### ####### ######     ####### #     # #     # ######   #####            #')
-    print('#                                                                                                  #')
-    print('#                 ####### ####### #     # #######    ######  ######   #####                        #')
-    print('#                    #    #        #   #     #       #     # #     # #     #                       #')
-    print('#                    #    #         # #      #       #     # #     # #                             #')
-    print('#                    #    #####      #       #       ######  ######  #  ####                       #')
-    print('#                    #    #         # #      #       #   #   #       #     #                       #')
-    print('#                    #    #        #   #     #       #    #  #       #     #                       #')
-    print('#                    #    ####### #     #    #       #     # #        #####                        #')
-    print('#                                                                                                  #')
-    print('#                                           - Play -                                               #')
-    print('#                                           - Load -                                               #')
-    print('#                                           - Help -                                               #')
-    print('#                                           - Exit -                                               #')
-    print('#                                  Copyright 2024 Krystian S                                       #')
-    print('####################################################################################################')
+    print('##############################')
+    print('#          - Play -          #')
+    print('#          - Load -          #')
+    print('#          - Help -          #')
+    print('#          - Exit -          #')
+    print('# Copyright 2024 Krystian S  #')
+    print('##############################')
 
     title_screen_selection()
 
-
 def help_menu():
-    print('####################################################################################################')
-    print('-                  use commands such go, examine, description, npc                                  ')
-    print('-                              type your commands to do them                                        ')
-    print('-                                                                                                   ')
-    print('-                                      good luck, have fun!                                         ')
-    print('####################################################################################################')
-    title_screen()
+    print('################################################################')
+    print('- Move, go, travel, or walk to move around in game')
+    print('- Examine, inspect, interact, or look to see whats going on ')
+    print('- Map will show display the player as P on the map ')
+    print('- Npc will interact with local npcs if they are there')
+    print('- Hunt will look for any monsters to battle, be ready')
+    print('################################################################')
 
+    title_screen()
 
 # MAP #
 ZONENAME = 'zonename'
@@ -425,7 +468,7 @@ zonemap = {
         DOWN: 'd1',
         LEFT: None,
         RIGHT: 'c2',
-        'monsters': [Monster("Boar", 20, 0, 5, 3, 1, 3, 1)]
+        'monsters': [boar_template]
     },
     'c2': {
         ZONENAME: 'Grasslands Outpost',
@@ -436,7 +479,7 @@ zonemap = {
         DOWN: 'd2',
         LEFT: 'c1',
         RIGHT: 'c3',
-        'monsters': [Monster("Boar", 20, 0, 5, 3, 1, 3, 1)]
+        'monsters': [boar_template]
     },
     'c3': {
         ZONENAME: 'Grasslands',
@@ -448,7 +491,7 @@ zonemap = {
         DOWN: 'd3',
         LEFT: 'c2',
         RIGHT: 'c4',
-        'monsters': [Monster("Boar", 20, 0, 5, 3, 1, 3, 1)]
+        'monsters': [boar_template]
     },
     'c4': {
         ZONENAME: 'Grasslands',
@@ -460,7 +503,7 @@ zonemap = {
         DOWN: 'd4',
         LEFT: 'c3',
         RIGHT: 'c5',
-        'monsters': [Monster("Boar", 20, 0, 5, 3, 1, 3, 1)]
+        'monsters': [boar_template]
     },
     'c5': {
         ZONENAME: 'Forest',
@@ -471,7 +514,7 @@ zonemap = {
         DOWN: 'd5',
         LEFT: 'c4',
         RIGHT: None,
-        'monsters': [Monster("Wolf", 50, 0, 7, 6, 3, 4, 2)]
+        'monsters': [wolf_template]
     },
     'd1': {
         ZONENAME: 'Dense Forest',
@@ -482,7 +525,7 @@ zonemap = {
         DOWN: None,
         LEFT: None,
         RIGHT: 'd2',
-        'monsters': [Monster("Wolf", 50, 0, 7, 6, 3, 4, 2)]
+        'monsters': [wolf_template]
     },
     'd2': {
         ZONENAME: 'Dense Forest',
@@ -493,7 +536,7 @@ zonemap = {
         DOWN: None,
         LEFT: 'd1',
         RIGHT: 'd3',
-        'monsters': [Monster("Wolf", 50, 0, 7, 6, 3, 4, 2), Monster("Bandit", 100, 0, 6, 5, 3, 5, 3)]
+        'monsters': [wolf_template, bandit_template]
     },
     'd3': {
         ZONENAME: 'Lumber Mill',
@@ -505,7 +548,7 @@ zonemap = {
         DOWN: None,
         LEFT: 'd2',
         RIGHT: 'd4',
-        'monsters': [Monster("Bandit", 100, 0, 6, 5, 3, 5, 3)]
+        'monsters': [bandit_template]
     },
     'd4': {
         ZONENAME: 'Old Ruins',
@@ -516,7 +559,7 @@ zonemap = {
         DOWN: None,
         LEFT: 'd3',
         RIGHT: 'd5',
-        'monsters': [Monster("Bandit", 100, 0, 6, 5, 3, 5, 3)]
+        'monsters': [bandit_template]
     },
     'd5': {
         ZONENAME: 'Hidden Cave',
@@ -527,10 +570,9 @@ zonemap = {
         DOWN: None,
         LEFT: 'd4',
         RIGHT: None,
-        'monsters': [Monster("Forest Troll", 250, 100, 10, 10, 6, 5, 3)]
+        'monsters': [troll_template]
     },
 }
-
 
 # GAME INTERACTIVITY #
 def print_location():
@@ -538,13 +580,12 @@ def print_location():
     print('\n' + ('#' * (80 + len(location))))
     print('# ' + zonemap[location][DESCRIPTION] + ' #')
 
-
 def prompt():
-    print('\n=========================')
-    print('What would you like to do?')
+    print('\n##############################')
+    print('# What would you like to do? #')
     action = input('>').lower()
     acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc',
-                          'save', 'hunt']
+                          'save', 'hunt', 'inventory']
     while action not in acceptable_actions:
         print('I do not understand, try another command')
         action = input('>').lower()
@@ -562,7 +603,8 @@ def prompt():
         save_game()
     elif action == 'hunt':
         hunt()
-
+    elif action == 'inventory':
+        my_player.show_inventory()
 
 def player_move():
     ask = 'Where would you like to go?\n'
@@ -580,7 +622,6 @@ def player_move():
         return
     movement_handler(destination)
 
-
 def movement_handler(destination):
     if destination:
         print('\nYou have moved to the ' + zonemap[destination][ZONENAME] + '.')
@@ -589,7 +630,6 @@ def movement_handler(destination):
         display_map()  # Show the map after moving
     else:
         print("You can't go that way!")
-
 
 def display_map():
     rows, cols = 4, 5
@@ -602,7 +642,6 @@ def display_map():
     for row in map_grid:
         print(" ".join(row))
 
-
 def player_examine():
     location = my_player.location
     if zonemap[location][SOLVED]:
@@ -610,13 +649,12 @@ def player_examine():
     else:
         print(zonemap[location][EXAMINATION])
 
-
 def interact_with_npc():
     location = my_player.location
     if location in npcs:
         for npc in npcs[location]:
             npc.talk()
-            action = input(f"Would you like to (1) Accept quest (2) Trade (3) Hear rumors (4) Leave? ").lower()
+            action = input(f"Would you like to (1) Accept quest (2) Trade (3) Hear rumors (4) Buy items (5) Sell items (6) Leave? ").lower()
             if action == '1':
                 npc.offer_quests()
             elif action == '2':
@@ -626,29 +664,40 @@ def interact_with_npc():
             elif action == '3':
                 npc.share_rumors()
             elif action == '4':
+                npc.show_inventory()
+                item_name = input("Which item would you like to buy? ")
+                item = npc.remove_from_inventory(item_name)
+                if item:
+                    my_player.add_to_inventory(item)
+            elif action == '5':
+                my_player.show_inventory()
+                item_name = input("Which item would you like to sell? ")
+                item = my_player.remove_from_inventory(item_name)
+                if item:
+                    npc.add_to_inventory(item)
+            elif action == '6':
                 print("You decide to leave.")
             else:
                 print("Invalid action.")
     else:
         print("There are no NPCs here.")
 
-
 # GAME FUNCTIONALITY #
 def start_game():
+    global my_player
+    my_player = Player()
     setup_game()
     main_game_loop()
-
 
 def main_game_loop():
     while not my_player.game_over:
         prompt()
 
-
 def setup_game():
     clear_screen()
 
     # NAME AND ROLE #
-    question1 = ' Hello friend, what is your name?\n'
+    question1 = 'Hello friend, what is your name?\n'
     for character in question1:
         sys.stdout.write(character)
         sys.stdout.flush()
@@ -694,13 +743,11 @@ def setup_game():
     print("############################")
     main_game_loop()
 
-
 # Save and Load Functions
 def save_game(filename='savefile.pkl'):
     with open(filename, 'wb') as f:
         pickle.dump(my_player, f)
         print("Game saved successfully.")
-
 
 def load_game(filename='savefile.pkl'):
     global my_player
@@ -712,5 +759,7 @@ def load_game(filename='savefile.pkl'):
     else:
         print("No save file found.")
 
+# Initialize the player object
+my_player = None
 
 title_screen()
