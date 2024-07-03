@@ -2,7 +2,12 @@
 - Text based game made in Python following several YT video, I'll slowly add more and better features as I learn from other videos. 
 
 # Controls #
-
+- move, go, travel, or walk to move around in game
+- Examine, inspect, interact, or look to see whats going on
+- Map will show display the player as P on the map
+- Npc will interact with local npcs if they are there
+- Hunt will look for any monsters to battle, be ready
+  
 # Map #
 
 player starts at b3
@@ -20,12 +25,17 @@ level 0 - tutorial area
 # Completed features # 
 - basic movement
 - basic commands
-
-# Wanted features #
-- inventory system
 - map system
-- npcs
-- quests
+- npcs (working on more)
+- monsters
+- quests (work in progress)
+- inventory system
+- battle system
+- character attributes
+- item attributes 
+  
+# Wanted features #
+- some sort of ui with the whole map
 - various spells
 - various weapon types and damages
 - various armor types
