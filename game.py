@@ -28,16 +28,17 @@ class Player:
         self.game_over = False
         self.turn_count = 0  # For spirit-based regeneration
         self.inventory = []
+        self.defense_buff_turns = 0
 
     def assign_stats(self):
         role_stats = {
-            'warrior': (5, 3, 1, 3, 2),
-            'mage': (1, 2, 5, 3, 3),
-            'archer': (3, 5, 2, 3, 1)
+            'warrior': (5, 3, 1, 3, 2, 150, 50),
+            'mage': (1, 2, 5, 3, 3, 50, 150),
+            'archer': (3, 5, 2, 3, 1, 75, 75)
         }
-        self.strength, self.agility, self.intelligence, self.spirit, self.luck = role_stats[self.role]
-        self.hp = 100 + self.strength
-        self.mp = 50 + self.intelligence
+        self.strength, self.agility, self.intelligence, self.spirit, self.luck, self.hp, self.mp = role_stats[self.role]
+        self.hp += self.strength
+        self.mp += self.intelligence
         self.armor = self.agility
 
     def melee_damage(self):
@@ -57,6 +58,9 @@ class Player:
     def update_turn(self):
         self.turn_count += 1
         self.regenerate()
+        # Decrease the defense buff turns if active
+        if self.defense_buff_turns > 0:
+            self.defense_buff_turns -= 1
 
     def add_to_inventory(self, item):
         if len(self.inventory) < 10:
@@ -82,6 +86,72 @@ class Player:
             for item in self.inventory:
                 print(f"- {item}")
 
+    # Warrior skills
+    def deep_wound(self, monster):
+        if self.mp >= 30:
+            self.mp -= 30
+            damage = 20 + self.melee_damage()
+            monster.hp -= damage
+            monster.status_effects.append({'effect': 'bleed', 'turns': 5, 'damage': 2})
+            print(f"{self.name} uses Deep Wound on {monster.name} for {damage} damage and causes bleed!")
+        else:
+            print("Not enough MP to use Deep Wound!")
+
+    def slam(self, monster):
+        if self.mp >= 40:
+            self.mp -= 40
+            damage = 10 + self.melee_damage()
+            monster.hp -= damage
+            monster.status_effects.append({'effect': 'stun', 'turns': 2})
+            print(f"{self.name} uses Slam on {monster.name} for {damage} damage and stuns it for 2 turns!")
+        else:
+            print("Not enough MP to use Slam!")
+
+    def to_arms(self, monster):
+        if self.mp >= 20:
+            self.mp -= 20
+            self.defense_buff_turns = 3
+            monster.status_effects.append({'effect': 'damage_reduction', 'turns': 3, 'reduction': 0.3})
+            print(f"{self.name} uses To Arms! Reduces {monster.name}'s damage by 30% for 3 turns.")
+        else:
+            print("Not enough MP to use To Arms!")
+
+    # Mage skills
+    def fireball(self, monster):
+        if self.mp >= 15:
+            self.mp -= 15
+            damage = 15 + self.magic_damage()
+            monster.hp -= damage
+            monster.status_effects.append({'effect': 'burn', 'turns': 2, 'damage': 5})
+            print(f"{self.name} uses Fireball on {monster.name} for {damage} and burns it for 2 turns!")
+        else:
+            print("Not enough MP to use Fireball!")
+
+    def sparks(self, monster):
+        if self.mp >= 25:
+            self.mp -= 25
+            damage = 20 + self.magic_damage()
+            if random.random() <= 0.25:
+                extra_damage = 25
+                damage += extra_damage
+                print(f"{self.name} uses Sparks on {monster.name} for {damage} damage! It deals an extra {extra_damage} damage!")
+            else:
+                print(f"{self.name} uses Sparks on {monster.name} for {damage} damage!")
+            monster.hp -= damage
+            monster.status_effects.append({'effect': 'shocked', 'turns': 1, 'damage': 25})
+        else:
+            print("Not enough MP to use Sparks!")
+
+    def magic_barrier(self, monster):
+        if self.mp >= 50:
+            self.mp -= 50
+            self.defense_buff_turns = 3
+            self.status_effects.append({'effect': 'damage_reduction', 'turns': 3, 'reduction': 0.3})
+            print(f"{self.name} uses Magic Barrier, reducing 30% damage for 3 turns")
+        else:
+            print("Not enough MP to use Magic Barrier")
+
+# Monsters
 class Monster:
     def __init__(self, name, hp, mp, strength, agility, intelligence, spirit, luck):
         self.name = name
@@ -113,11 +183,27 @@ class Monster:
     def update_turn(self):
         self.turn_count += 1
         self.regenerate()
+        # Process status effects
+        for effect in self.status_effects[:]:
+            if effect['effect'] == 'bleed':
+                self.hp -= effect['damage']
+                print(f"{self.name} takes {effect['damage']} bleed damage!")
+            effect['turns'] -= 1
+            if effect['turns'] <= 0:
+                self.status_effects.remove(effect)
 
     def attack(self, player):
-        damage = self.melee_damage() - player.armor
-        player.hp -= max(0, damage)
-        print(f"{self.name} attacks {player.name} for {damage} damage!")
+        if any(effect['effect'] == 'stun' for effect in self.status_effects):
+            print(f"{self.name} is stunned and cannot attack!")
+        else:
+            damage = self.melee_damage() - player.armor
+            if player.defense_buff_turns > 0:
+                damage = int(damage * 0.7)
+            if any(effect['effect'] == 'damage_reduction' for effect in self.status_effects):
+                damage_reduction_effect = next(effect for effect in self.status_effects if effect['effect'] == 'damage_reduction')
+                damage = int(damage * (1 - damage_reduction_effect['reduction']))
+            player.hp -= max(0, damage)
+            print(f"{self.name} attacks {player.name} for {damage} damage!")
 
     def is_alive(self):
         return self.hp > 0
@@ -132,6 +218,8 @@ class Item:
         effects = ', '.join(f"{stat}: {value}" for stat, value in self.stat_effects.items())
         return f"{self.quality.title()} {self.name} ({effects})"
 
+
+# NPC's
 class NPC:
     def __init__(self, name, quests=None, inventory=None):
         self.name = name
@@ -220,16 +308,24 @@ def display_battle_ui(player, monster):
     clear_screen()
     print("#################### BATTLE ####################")
     print(f"Player: {player.name} | Role: {player.role}")
-    print(f"HP: {player.hp}/{100 + player.strength}    MP: {player.mp}/{50 + player.intelligence}")
+    total_hp = 150 if player.role == 'warrior' else 50 if player.role == 'mage' else 75
+    total_mp = 50 if player.role == 'warrior' else 150 if player.role == 'mage' else 75
+    total_hp += player.strength
+    total_mp += player.intelligence
+    print(f"HP: {player.hp}/{total_hp}    MP: {player.mp}/{total_mp}")
     print(f"Strength: {player.strength}  Agility: {player.agility}")
     print(f"Intelligence: {player.intelligence}  Spirit: {player.spirit}")
     print(f"Luck: {player.luck}  Armor: {player.armor}")
+    print(f"Defense Buff Turns Remaining: {player.defense_buff_turns}")
     print("------------------------------------------------")
     print(f"Monster: {monster.name}")
     print(f"HP: {monster.hp}    MP: {monster.mp}")
     print(f"Strength: {monster.strength}  Agility: {monster.agility}")
     print(f"Intelligence: {monster.intelligence}  Spirit: {monster.spirit}")
     print(f"Luck: {monster.luck}  Armor: {monster.armor}")
+    for effect in monster.status_effects:
+        if effect['effect'] == 'stun':
+            print(f"{monster.name} is stunned for {effect['turns']} more turns.")
     print("################################################")
 
 def battle(monster):
@@ -242,7 +338,26 @@ def battle(monster):
             monster.hp -= damage
             print(f"{my_player.name} attacks {monster.name} for {damage} damage!")
         elif action == '2':
-            pass  # Implement skill logic
+            if my_player.role == 'warrior':
+                skill = input("Choose a skill: (1) Deep Wound (2) Slam (3) To Arms: ").lower()
+                if skill == '1':
+                    my_player.deep_wound(monster)
+                elif skill == '2':
+                    my_player.slam(monster)
+                elif skill == '3':
+                    my_player.to_arms(monster)
+                else:
+                    print("Invalid skill!")
+            elif my_player.role == 'mage':
+                skill = input("Choose a spell: (1) Fireball (2) Sparks (3) Magic Barrier: ").lower()
+                if skill == '1':
+                    my_player.fireball(monster)
+                elif skill == '2':
+                    my_player.sparks(monster)
+                elif skill == '3':
+                    my_player.magic_barrier(monster)
+                else:
+                    print("Invalid spell!")
         elif action == '3':
             pass  # Implement item usage
         elif action == '4':
@@ -254,6 +369,7 @@ def battle(monster):
         if monster.is_alive():
             monster.attack(my_player)
             my_player.update_turn()
+            monster.update_turn()
 
     if my_player.hp <= 0:
         print("You have been defeated.")
