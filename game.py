@@ -85,7 +85,7 @@ class Player:
             self.defense_buff_turns -= 1
 
     def add_to_inventory(self, item):
-        if len(self.inventory) < 10:
+        if len(self.inventory) < 20:
             self.inventory.append(item)
             print(f"{item.name} added to inventory.")
         else:
@@ -214,6 +214,7 @@ class Player:
             self.equip_weapon(item)
         else:
             print("Cannot equip this item.")
+        self.display_stats()
 
     def equip_armor(self, armor):
         if self.equipped_armor:
@@ -235,6 +236,7 @@ class Player:
             self.add_to_inventory(armor)  # Add back to inventory after updating stats
             self.equipped_armor = None
             print(f"{self.name} unequipped {armor.name}.")
+        self.display_stats()
 
     def equip_weapon(self, weapon):
         if self.equipped_weapon:
@@ -254,6 +256,7 @@ class Player:
             self.add_to_inventory(weapon)  # Add back to inventory after updating stats
             self.equipped_weapon = None
             print(f"{self.name} unequipped {weapon.name}.")
+        self.display_stats()
 
     def calculate_damage_reduction(self, damage_type):
         reduction = self.armor * 0.01
@@ -265,6 +268,23 @@ class Player:
             elif damage_type == 'magic':
                 reduction += self.equipped_armor.magic_reduction
         return reduction
+
+    def display_stats(self):
+        print("\n########## Player Stats ##########")
+        print(f"Name: {self.name}")
+        print(f"Role: {self.role}")
+        print(f"HP: {self.hp}")
+        print(f"MP: {self.mp}")
+        print(f"Strength: {self.strength}")
+        print(f"Agility: {self.agility}")
+        print(f"Intelligence: {self.intelligence}")
+        print(f"Spirit: {self.spirit}")
+        print(f"Luck: {self.luck}")
+        print(f"Armor: {self.armor}")
+        print(f"Gold: {self.gold}")
+        print(f"Equipped Weapon: {self.equipped_weapon}")
+        print(f"Equipped Armor: {self.equipped_armor}")
+        print("###################################")
 
 
 class Monster:
@@ -371,6 +391,7 @@ class NPC:
         self.inventory = inventory if inventory else []
         self.rumors = rumors if rumors else []
         self.dialogue = dialogue if dialogue else {}
+        self.gold = 1000
 
     def talk(self):
         if 'greeting' in self.dialogue:
@@ -411,14 +432,24 @@ class NPC:
                 player.quests['archy']['active'] = False
                 print(f"{self.name}: Thank you for slaying the boars! Here is your reward: 250 gold.")
 
-    def buy(self, item):
-        self.inventory.append(item)
-        print(f"{self.name} buys {item}")
+    def buy(self, item, player):
+        if self.gold >= ITEM_PRICES[item.quality]:
+            self.inventory.append(item)
+            player.gold += ITEM_PRICES[item.quality]
+            self.gold -= ITEM_PRICES[item.quality]
+            print(f"{self.name} buys {item}")
+        else:
+            print(f"{self.name} doesn't have enough gold to buy {item}")
 
-    def sell(self, item):
+    def sell(self, item, player):
         if item in self.inventory:
-            self.inventory.remove(item)
-            print(f"{self.name} sells {item}")
+            if player.gold >= ITEM_PRICES[item.quality]:
+                self.inventory.remove(item)
+                player.gold -= ITEM_PRICES[item.quality]
+                self.gold += ITEM_PRICES[item.quality]
+                print(f"{self.name} sells {item}")
+            else:
+                print(f"{player.name} doesn't have enough gold to buy {item}")
         else:
             print(f"{self.name} doesn't have {item}")
 
@@ -839,6 +870,8 @@ def battle(monster):
         dropped_item = drop_item(my_player)
         print(f"You found a {dropped_item}!")
         my_player.add_to_inventory(dropped_item)
+        my_player.gold += 5
+        print(f"You found 5 gold!")
 
 
 def hunt():
@@ -1037,14 +1070,18 @@ def title_screen():
 
     title_screen_selection()
 
-
 def help_menu():
     print('################################################################')
     print('- Move, go, travel, or walk to move around in game')
-    print('- Examine, inspect, interact, or look to see whats going on ')
-    print('- Map will show display the player as P on the map ')
-    print('- Npc will interact with local npcs if they are there')
+    print('- Examine, inspect, interact, or look to see what\'s going on')
+    print('- Map will display the player as P on the map')
+    print('- Npc will interact with local NPCs if they are there')
     print('- Hunt will look for any monsters to battle, be ready')
+    print('- Inventory will show the items you currently have')
+    print('- Stats will show your current stats and equipped items')
+    print('- Equip and unequip your gear')
+    print('- Forage will search the area for herbs')
+    print('- Create potion will create a health potion if you have the ingredients')
     print('################################################################')
 
     title_screen()
@@ -1073,7 +1110,7 @@ def prompt():
     print('# What would you like to do? #')
     action = input('>').lower()
     acceptable_actions = ['move', 'go', 'travel', 'walk', 'examine', 'inspect', 'interact', 'look', 'map', 'npc',
-                          'save', 'hunt', 'inventory', 'equip', 'unequip', 'forage', 'buy', 'sell', 'create potion']
+                          'save', 'hunt', 'inventory', 'equip', 'unequip', 'forage', 'buy', 'sell', 'create potion', 'stats']
     while action not in acceptable_actions:
         print('I do not understand, try another command')
         action = input('>').lower()
@@ -1107,6 +1144,8 @@ def prompt():
         sell_item(my_player, npc)
     elif action == 'create potion':
         create_potion(my_player)
+    elif action == 'stats':
+        my_player.display_stats()
 
 
 def equip_item():
@@ -1258,8 +1297,8 @@ def setup_game():
     print("### Let's start the game ###")
     print("############################")
 
-    # Set the initial player location to 'b2'
-    my_player.location = 'b2'
+
+    my_player.location = 'b3'
 
     main_game_loop()
 
