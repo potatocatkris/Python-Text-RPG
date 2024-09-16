@@ -42,7 +42,7 @@ class Tile:
 player_tile = Tile('P', 'player', Color.ANSI_RED)
 
 # Biomes
-plains = Tile('.', 'plains', Color.ANSI_YELLOW)
+plains = Tile('.', 'plains', Color.ANSI_DARK_YELLOW)
 grasslands = Tile(',', 'grasslands', Color.ANSI_LIGHT_GREEN)
 forest = Tile('Y', 'forest', Color.ANSI_GREEN)
 dark_forest = Tile('8', 'dark_forest', Color.ANSI_DARK_GREEN)
@@ -55,20 +55,20 @@ enchanted_forest = Tile('$', 'enchanted_forest', Color.ANSI_DARK_CYAN)
 frigid_mountain = Tile('M', 'frigid_mountain', Color.ANSI_WHITE)
 
 # Buildings
-town = Tile('T', 'town', Color.ANSI_DARK_YELLOW)
-farmhouse = Tile('F', 'farmhouse', Color.ANSI_DARK_YELLOW)
+town = Tile('T', 'town', Color.ANSI_YELLOW)
+farmhouse = Tile('F', 'farmhouse', Color.ANSI_YELLOW)
 castle = Tile('C', 'castle', Color.ANSI_DARK_WHITE)
 old_ruins = Tile('O', 'old_ruins', Color.ANSI_LIGHT_GRAY)
-jungle_temple = Tile('J', 'jungle_temple', Color.ANSI_DARK_YELLOW)
-voodoo_village = Tile('V', 'voodoo_village', Color.ANSI_DARK_YELLOW)
-goblin_fortress = Tile('G', 'goblin_village', Color.ANSI_DARK_YELLOW)
+jungle_temple = Tile('J', 'jungle_temple', Color.ANSI_YELLOW)
+voodoo_village = Tile('V', 'voodoo_village', Color.ANSI_YELLOW)
+goblin_fortress = Tile('G', 'goblin_village', Color.ANSI_YELLOW)
 
 # NPC
-store_clerk = Tile('S', 'store_clerk', Color.ANSI_WHITE)
-blacksmith = Tile('B', 'blacksmith', Color.ANSI_WHITE)
-ranger = Tile('R', 'ranger', Color.ANSI_WHITE)
-herbalist = Tile('H', 'herbalist', Color.ANSI_WHITE)
-wisdom_seeker = Tile('W', 'wisdom_seeker', Color.ANSI_WHITE)
+store_clerk = Tile('S', 'store_clerk', Color.ANSI_DARK_RED)
+blacksmith = Tile('B', 'blacksmith', Color.ANSI_DARK_RED)
+ranger = Tile('R', 'ranger', Color.ANSI_DARK_RED)
+herbalist = Tile('H', 'herbalist', Color.ANSI_DARK_RED)
+wisdom_seeker = Tile('W', 'wisdom_seeker', Color.ANSI_DARK_RED)
 
 unexplored_tile = Tile('?', 'unexplored', Color.ANSI_LIGHT_GRAY)
 
@@ -266,24 +266,17 @@ class Player:
         self.strength, self.agility, self.intelligence, self.spirit, self.luck, self.hp, self.mp = role_stats[self.role]
         self.hp += self.strength
         self.mp += self.intelligence
-        self.armor = self.agility
 
     def display_stats(self):
-        print("\n########## Player Stats ##########")
-        print(f"Name: {self.name}")
-        print(f"Role: {self.role}")
-        print(f"HP: {self.hp}")
-        print(f"MP: {self.mp}")
-        print(f"Strength: {self.strength}")
-        print(f"Agility: {self.agility}")
-        print(f"Intelligence: {self.intelligence}")
-        print(f"Spirit: {self.spirit}")
-        print(f"Luck: {self.luck}")
-        print(f"Armor: {self.armor}")
-        print(f"Gold: {self.gold}")
-        print(f"Equipped Weapon: {self.equipped_weapon}")
-        print(f"Equipped Armor: {self.equipped_armor}")
-        print("###################################")
+        print("|                     - Player Stats -                       x")
+        print(f"|Name: {self.name}            Role: {self.role}            Gold: {self.gold}     x")
+        print(f"|HP: {self.hp}                             MP: {self.mp}                  x")
+        print(f"|{self.equipped_weapon}: Equipped Weapon                                       x")
+        print(f"|{self.equipped_armor}: Equipped Armor                                        x")
+        print(f"|{self.strength} :Strength            {self.agility} :Agility                           x")
+        print(f"|{self.intelligence} :Intelligence        {self.spirit} : Spirit                           x")
+        print(f"|{self.luck} : Luck               {self.armor} : Armor                            x")
+        print("x------------------------------------------------------------x")
 
 
 # Global player instance
