@@ -1,7 +1,6 @@
 import os
 import random
 
-
 # Define the Color class for ANSI color codes
 class Color:
     ANSI_RESET = "\033[0m"
@@ -25,7 +24,6 @@ class Color:
     ANSI_DARK_WHITE = "\033[0;37m"
     ANSI_LIGHT_GRAY = "\033[0;37m"
 
-
 # Define the Tile class
 class Tile:
     def __init__(self, symbol: str, name: str, color: str = Color.ANSI_RESET, monster: str = None,
@@ -36,7 +34,6 @@ class Tile:
         self.colored_symbol = f"{color}{symbol}{Color.ANSI_RESET}"
         self.colored_name = f"{color}{name.upper()}{Color.ANSI_RESET}"
         self.colored_legend = f"{self.colored_symbol} {self.colored_name}"
-
 
 # Define various tiles
 player_tile = Tile('P', 'player', Color.ANSI_RED)
@@ -96,53 +93,48 @@ world_map = [
     '888GGG88YY~~~~~~~~~~YYY88AACCCCAAAA8888YYYY==,,88$$$MMMMMCCC',
 ]
 
+game_ui = [
+    '██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████',
+    '█▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒- Map - ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒- Biomes -▒▒▒▒▒▒▒▒▒▒▒- Buildings -▒▒▒▒▒▒▒- NPC -▒▒▒▒▒▒▒▒▒║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒- Game Info -▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒- Player Stats -▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒║▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒- Target Stats - ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║                                                            ║                                                            ║█',
+    '█▒║▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒║▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒║█',
+    '██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████'
+]
 
 # Utility function to clear the screen
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-
-# Define the legend for the map tiles in three categories: biomes, buildings, and NPCs/others
-def get_legend():
-    biomes = [
-        f"{plains.colored_symbol} - {plains.name}          ",
-        f"{grasslands.colored_symbol} - {grasslands.name}      ",
-        f"{forest.colored_symbol} - {forest.name}          ",
-        f"{dark_forest.colored_symbol} - {dark_forest.name}     ",
-        f"{mountain.colored_symbol} - {mountain.name}        ",
-        f"{river.colored_symbol} - {river.name}           ",
-        f"{lake.colored_symbol} - {lake.name}            ",
-        f"{deep_lake.colored_symbol} - {deep_lake.name}",
-        f"{jungle.colored_symbol} - {jungle.name}",
-        f"{enchanted_forest.colored_symbol} - {enchanted_forest.name}",
-        f"{frigid_mountain.colored_symbol} - {frigid_mountain.name}",
-    ]
-
-    buildings = [
-        f"{town.colored_symbol} - {town.name}           ",
-        f"{farmhouse.colored_symbol} - {farmhouse.name}      ",
-        f"{castle.colored_symbol} - {castle.name}         ",
-        f"{old_ruins.colored_symbol} - {old_ruins.name}      ",
-        f"{jungle_temple.colored_symbol} - {jungle_temple.name}  ",
-        f"{voodoo_village.colored_symbol} - {voodoo_village.name} ",
-        f"{goblin_fortress.colored_symbol} - {goblin_fortress.name} ",
-    ]
-
-    npcs_others = [
-        f"{player_tile.colored_symbol} - {player_tile.name}",
-        f"{store_clerk.colored_symbol} - {store_clerk.name}",
-        f"{blacksmith.colored_symbol} - {blacksmith.name}",
-        f"{ranger.colored_symbol} - {ranger.name}",
-        f"{herbalist.colored_symbol} - {herbalist.name}",
-        f"{wisdom_seeker.colored_symbol} - {wisdom_seeker.name}",
-        f"{unexplored_tile.colored_symbol} - {unexplored_tile.name}   ",
-    ]
-
-    return biomes, buildings, npcs_others
-
-
+# Map class to handle map-related functionality
 class Map:
-    def __init__(self, width: int, height: int, discovery_size: int = 4) -> None:
+    def __init__(self, width: int, height: int, discovery_size: int = 1) -> None:
         self.width = width
         self.height = height
         self.discovery_size = discovery_size
@@ -151,7 +143,7 @@ class Map:
         self.player_x = 0
         self.player_y = 0
         self.map_data = [[unexplored_tile for _ in range(self.width)] for _ in range(self.height)]
-        self.discover_area()
+        self.discover_area()  # Discover initial area
 
     def get_tile(self, symbol):
         tile_mapping = {
@@ -188,6 +180,7 @@ class Map:
             for x in range(max(0, self.player_x - self.discovery_size),
                            min(self.width, self.player_x + self.discovery_size + 1)):
                 self.discovered_map[y][x] = True
+                self.map_data[y][x] = self.get_tile(self.full_map_data[y][x])
 
     def move_player(self, direction):
         # Movement logic based on user input ('w', 'a', 's', 'd')
@@ -203,38 +196,39 @@ class Map:
         # After moving, update the discovered area around the player
         self.discover_area()
 
-    def display_map(self):
-        clear_screen()
-        biomes, buildings, npcs_others = get_legend()
+    def display_full_game_ui(self):
+        # Size of the map section in the game UI
+        map_ui_height = 20  # Assuming the map UI has 10 rows to display
+        map_ui_width = 50   # Assuming the map UI has 50 columns to display
 
-        print(f"{' ' * 23}- World Map -{' ' * 50}- Legend -")
-        print(f"x{'-' * self.width}x-----Biomes---------------Buildings-----------NPC-----------x")
-
-        map_lines = []
-        for y, row in enumerate(self.full_map_data):
-            line = "|"
-            for x, symbol in enumerate(row):
-                if x == self.player_x and y == self.player_y:
-                    line += player_tile.colored_symbol
+        # Generate map display string
+        map_display = []
+        for y in range(min(self.height, map_ui_height)):
+            row = ""
+            for x in range(min(self.width, map_ui_width)):
+                if self.player_x == x and self.player_y == y:
+                    row += player_tile.colored_symbol
                 elif self.discovered_map[y][x]:
-                    tile = self.get_tile(symbol)
-                    line += tile.colored_symbol
+                    row += self.map_data[y][x].colored_symbol
                 else:
-                    line += unexplored_tile.colored_symbol
-            line += "|"
-            map_lines.append(line)
+                    row += unexplored_tile.colored_symbol
+            map_display.append(row)
 
-        max_legend_length = max(len(biomes), len(buildings), len(npcs_others))
-        for i in range(max(len(map_lines), max_legend_length)):
-            map_part = map_lines[i] if i < len(map_lines) else " " * (self.width + 2)
-            biomes_part = biomes[i] if i < len(biomes) else " " * 18
-            buildings_part = buildings[i] if i < len(buildings) else " " * 18
-            npcs_part = npcs_others[i] if i < len(npcs_others) else ""
+        # Create a copy of the UI to modify
+        game_ui_copy = game_ui.copy()
 
-            print(f"{map_part:<65} {biomes_part:<25} {buildings_part:<18} {npcs_part:<18}")
+        # Insert the map display into the game UI copy at the correct lines
+        ui_map_start_line = 2  # Line index in the game_ui where the map starts
+        for i in range(len(map_display)):
+            # Replace the map part of the game UI line with the corresponding map row
+            game_ui_copy[ui_map_start_line + i] = (
+                game_ui_copy[ui_map_start_line + i][:3] +  # Keep the start of the line intact
+                map_display[i] +                           # Insert the map row
+                game_ui_copy[ui_map_start_line + i][3 + map_ui_width:]  # Keep the remaining part of the line intact
+            )
 
-        print(f"x{'-' * self.width}x------------------------------------------------------------x")
-
+        # Print the full game UI with the map
+        print("\n".join(game_ui_copy))
 
 # Define the Player class
 class Player:
@@ -267,21 +261,11 @@ class Player:
         self.hp += self.strength
         self.mp += self.intelligence
 
-    def display_stats(self):
-        print("|                     - Player Stats -                       x")
-        print(f"|Name: {self.name}            Role: {self.role}            Gold: {self.gold}     x")
-        print(f"|HP: {self.hp}                             MP: {self.mp}                  x")
-        print(f"|{self.equipped_weapon}: Equipped Weapon                                       x")
-        print(f"|{self.equipped_armor}: Equipped Armor                                        x")
-        print(f"|{self.strength} :Strength            {self.agility} :Agility                           x")
-        print(f"|{self.intelligence} :Intelligence        {self.spirit} : Spirit                           x")
-        print(f"|{self.luck} : Luck               {self.armor} : Armor                            x")
-        print("x------------------------------------------------------------x")
-
+    def display_player_stats(self):
+        print(f"|Name: {self.name}    Role: {self.role}     Gold: {self.gold}     x")
 
 # Global player instance
 my_player = Player()
-
 
 # Setup the game (Player creation and role assignment)
 def setup_game():
@@ -302,7 +286,6 @@ def setup_game():
     my_player.assign_stats()  # Assign the appropriate stats based on the role
     print(f'You are now a {player_role}!\n')
 
-
 # Main game function
 def start_game():
     # Setup player and world
@@ -312,15 +295,15 @@ def start_game():
     game_map = Map(width=len(world_map[0]), height=len(world_map))
 
     while not my_player.game_over:  # The main game loop continues until the player loses
-        game_map.display_map()  # Show the map
-        my_player.display_stats()  # Show the player's stats below the map
+        clear_screen()
+        game_map.display_full_game_ui()  # Show the full UI with the map embedded
+        my_player.display_player_stats()  # Show the player's stats below the map
         move = input("Enter your move (w/a/s/d): ").lower()  # Get player movement
 
         if move in ['w', 'a', 's', 'd']:
             game_map.move_player(move)
         else:
             print("Invalid input! Please use 'w', 'a', 's', or 'd' to move.")
-
 
 # Title screen
 def title_screen():
@@ -343,7 +326,6 @@ def title_screen():
         print("Invalid selection, please choose again.")
         title_screen()
 
-
 # Help menu
 def help_menu():
     print('##############################################')
@@ -352,7 +334,6 @@ def help_menu():
     print('##############################################')
 
     title_screen()
-
 
 # Main entry point
 if __name__ == "__main__":
